@@ -1,3 +1,16 @@
+# Setup
+Clone this repository to your local computer with git clone https://github.com/ysoran/image-slider.git
+
+### `npm install`
+install libraries that are defined on package json with npm install command
+### `npm start`
+start application in development mode with command npm start
+Then the application should be ready to visit on you browser on here: [http://localhost:3000](http://localhost:3000)
+
+
+
+This project uses Create React App, in case you are not familiar you can see more details about it on here:
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

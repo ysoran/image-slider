@@ -15,8 +15,8 @@ const CanvasSlider = ({ images }) => {
   const [position, setPosition] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
-  const [visibleImages, setVisibleImages] = useState([]);
-console.log(visibleImages);
+  const [loadedImages, setLoadedImages] = useState([]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     canvas.width = 640;
@@ -33,8 +33,8 @@ console.log(visibleImages);
       });
 
       try {
-        const loadedImages = await Promise.all(imgPromises);
-        setVisibleImages(loadedImages);
+        const loadedImagesResult = await Promise.all(imgPromises);
+        setLoadedImages(loadedImagesResult);
       } catch (error) {
         console.error('Error loading images:', error);
       }
@@ -48,7 +48,7 @@ console.log(visibleImages);
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    visibleImages.forEach((img, index) => {
+    loadedImages.forEach((img, index) => {
       if (img.complete) {
         const aspectRatio = img.width / img.height;
         let scaledWidth, scaledHeight;
@@ -76,7 +76,7 @@ console.log(visibleImages);
         ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
       }
     });
-  }, [visibleImages, position]);
+  }, [loadedImages, position]);
 
   const handleMouseDown = (e) => {
     setIsDragging(true);
@@ -90,7 +90,7 @@ console.log(visibleImages);
         setStartX(e.clientX);
         setPosition((prevPosition) => {
           const containerWidth = canvasRef.current.clientWidth;
-          const imagesWidth = visibleImages.length * 640;
+          const imagesWidth = loadedImages.length * 640;
           const minX = Math.min(containerWidth - imagesWidth, 0);
           return Math.max(minX, Math.min(0, prevPosition + movementX));
         });
@@ -110,7 +110,7 @@ console.log(visibleImages);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging, startX, visibleImages]);
+  }, [isDragging, startX, loadedImages]);
 
   return (
     <SliderContainer>

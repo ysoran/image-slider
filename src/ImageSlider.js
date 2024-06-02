@@ -1,6 +1,5 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
-import { useDrag } from 'react-use-gesture';
 
 const SliderContainer = styled.div`
   overflow: hidden;
@@ -8,55 +7,107 @@ const SliderContainer = styled.div`
   height: 400px;
   position: relative;
   margin: auto;
-  border: 1px solid #ccc; 
+  border: 1px solid #ccc;
 `;
 
-const Canvas = styled.div`
+const Canvas = styled.div.attrs(({ x }) => ({
+  style: {
+    transform: `translate3d(${x}px, 0, 0)`,
+  },
+}))`
   display: flex;
   cursor: grab;
   user-select: none;
   height: 100%;
   will-change: transform;
-  transform: ${({ x }) => `translate3d(${x}px, 0, 0)`};
 `;
 
-const Image = styled.img`
-  height: 400px;
+const ImageElement = styled.img`
+  max-height: 400px;
+  max-width: 640px;
+  aspectRatio: 400 / 640;
   flex-shrink: 0;
+  align-self: center; // Assuming we want images to show up on their real sizes, remove in case its not wanted.
 `;
 
-const slidingRatio = 20/640; // Adjust the sliding ratio as needed, I did not optimize
+const ImageWrapper = styled.div`
+    min-width:640px;
+    display:flex;
+    background: #eee;
+    aspectRatio: 400 / 640;
+    justify-content:center;
+    align-content:center;
+    overflow:hidden;
+    border-right: "1px solid black";
+`;
+
+const Image = React.memo(({ src }) => (
+    <ImageWrapper>
+        <ImageElement src={src} draggable={false} />
+    </ImageWrapper>
+));
 
 const ImageSlider = ({ images }) => {
   const containerRef = useRef();
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
   const [position, setPosition] = useState(0);
 
-  const bind = useDrag(
-    ({ active, movement: [mx] }) => {
-      if (active) {
-        const containerWidth = containerRef.current.clientWidth;
-        const imagesWidth = images.length * 640;
-        const minX = Math.min(containerWidth - imagesWidth, 0);
+  const handleMouseDown = useCallback((event) => {
+    setIsDragging(true);
+    setStartX(event.clientX);
+    
+  }, []);
 
-        let newPosition = position + mx * slidingRatio;
+  const handleMouseMove = useCallback((event) => {
+    if (!isDragging) return;
 
-        if (newPosition > 0) {
-          newPosition = 0;
-        } else if (newPosition < minX) {
-          newPosition = minX;
-        }
+    const movementX = event.clientX - startX;
+    setPosition((prevPosition) => {
+      const newPosition = prevPosition + movementX;
+      const containerWidth = containerRef.current.clientWidth;
+      const imagesWidth = images.length * 640;
+      const minX = Math.min(containerWidth - imagesWidth, 0);
+      return Math.max(minX, Math.min(0, newPosition));
+    });
+    setStartX(event.clientX);
+  }, [isDragging, startX, images]);
 
-        setPosition(newPosition);
-      }
-    },
-    { axis: 'x' }
-  );
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  useEffect(() => {
+    const onMouseMove = (event) => {
+      handleMouseMove(event);
+    };
+    const onMouseUp = () => {
+      handleMouseUp();
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    } else {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   return (
-    <SliderContainer ref={containerRef}>
-      <Canvas {...bind()} x={position}>
+    <SliderContainer>
+      <Canvas
+        ref={containerRef}
+        onMouseDown={handleMouseDown}
+        x={position}
+      >
         {images.map((src, index) => (
-          <Image key={index} src={src} draggable={false} />
+          <Image key={index} src={src} />
         ))}
       </Canvas>
     </SliderContainer>

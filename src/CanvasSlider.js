@@ -16,7 +16,7 @@ const CanvasSlider = ({ images }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [visibleImages, setVisibleImages] = useState([]);
-
+console.log(visibleImages);
   useEffect(() => {
     const canvas = canvasRef.current;
     canvas.width = 640;
@@ -41,18 +41,6 @@ const CanvasSlider = ({ images }) => {
     };
 
     loadImages();
-
-    const handleResize = () => {
-      const visibleCount = Math.ceil(canvas.width / 640);
-      setVisibleImages(images.slice(0, visibleCount));
-    };
-
-    window.addEventListener('resize', handleResize);
-    handleResize();
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
   }, [images]);
 
   useEffect(() => {

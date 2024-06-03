@@ -17,19 +17,14 @@ const images = [
   imageTiny,
 ];
 
+
 const App = () => {
   return (
     <div className="App">
-      <div><b>Vanilla javascript</b> Optimized for centering the image</div>
-      <div>Assuming in case the images are not big enough, we want to render them with their own sizes.</div>
-      <div>You can see this case on latest image only.</div>
-      <div>If we want images to stretch to the closest full size accoring to aspect ratio 400/600, then we need to remove line 30 on ImageSliderVanilla.js</div>
+      <p>Vanilla javascript</p>
       <ImageSlider images={images} />
-
-      <div>Canvas Slider</div>
-      <div>
+      <p>Canvas Slider</p>
       <CanvasSlider images={images} />
-      </div>
     </div>
   );
 };
